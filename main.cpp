@@ -49,6 +49,12 @@ void Token_stream::putback(Token t)
 
 //------------------------------------------------------------------------------
 
+int factorial(int n) {
+    if (n < 0) return 0;
+    else if (n > 1) return n * factorial(n - 1);
+    return 1;
+}
+
 Token Token_stream::get()
 {
     if (full) {       // do we already have a Token ready?
@@ -62,8 +68,8 @@ Token Token_stream::get()
 
     switch (ch) {
     case '=':    // for "print"
-    case 'x':    // for "quit"
-    case '(': case ')': case '+': case '-': case '*': case '/':
+    case 'x':  // for "quit"
+    case '(': case ')': case '+': case '-': case '*': case '/': case '{': case '}':
         return Token(ch);        // let each character represent itself
     case '.':
     case '0': case '1': case '2': case '3': case '4':
@@ -89,7 +95,7 @@ double expression();    // declaration so that primary() can call expression()
 
 //------------------------------------------------------------------------------
 
-// deal with numbers and parentheses
+// deal with numbers and parentheses:() and {}
 double primary()
 {
     Token t = ts.get();
@@ -101,8 +107,18 @@ double primary()
         if (t.kind != ')') error("')' expected");
             return d;
     }
-    case '8':            // we use '8' to represent a number
+    case '{':
+    {
+        double e = expression();
+        t = ts.get();
+        if (t.kind != '}') error("'}' expected");
+            return e;
+    }
+    case '8':             // we use '8' to represent a number
         return t.value;  // return the number's value
+    case 'x':
+        ts.putback(t);
+        break;
     default:
         error("primary expected");
     }
@@ -110,7 +126,7 @@ double primary()
 
 //------------------------------------------------------------------------------
 
-// deal with *, /, and %
+// deal with *, and / 
 double term()
 {
     double left = primary();
@@ -168,7 +184,7 @@ int main()
 {
     cout << "Welcome to our simple calculator. \n"
         << "Please enter expressions using floating-point numbers. \n"
-        << "The operators available are: +, -, * and /. Press '=' to print the result or 'x' to exit.";
+        << "The operators available are: +, -, * and /. Press '=' to print the result or 'x' to exit.\n";
     try
     {
         double val = 0;
